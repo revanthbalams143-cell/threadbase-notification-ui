@@ -1,3 +1,4 @@
+
 export const initialState = {
   notifications: [],
   unreadCount: 0,
@@ -6,25 +7,57 @@ export const initialState = {
 export function notificationReducer(state, action) {
   switch (action.type) {
 
-    case "ADD_NOTIFICATION":
-      // TODO: prepend action.payload to notifications, slice to max 50, increment unreadCount
-      return state;
+    case "ADD_NOTIFICATION": {
+      return {
+        ...state,
+        notifications: [
+          action.payload,
+          ...state.notifications,
+        ].slice(0, 50),
+        unreadCount: state.unreadCount + 1,
+      };
+    }
 
-    case "MARK_READ":
-      // TODO: find notification by action.payload (id)
-      // TODO: guard — return state unchanged if target is missing OR already read
-      // TODO: map over array to set isRead: true on the matching item
-      // TODO: use Math.max(0, state.unreadCount - 1) for the new count
-      return state;
+    case "MARK_READ": {
+      const notification = state.notifications.find(
+        (n) => n.id === action.payload
+      );
 
-    case "MARK_ALL_READ":
-      // TODO: set every notification's isRead to true, reset unreadCount to 0
-      return state;
+      if (!notification || notification.isRead) {
+        return state;
+      }
 
-    case "LOAD_NOTIFICATIONS":
-      // TODO: replace notifications array with action.payload
-      // TODO: compute unreadCount as action.payload.filter(n => !n.isRead).length
-      return state;
+      return {
+        ...state,
+        notifications: state.notifications.map((n) =>
+          n.id === action.payload
+            ? { ...n, isRead: true }
+            : n
+        ),
+        unreadCount: Math.max(0, state.unreadCount - 1),
+      };
+    }
+
+    case "MARK_ALL_READ": {
+      return {
+        ...state,
+        notifications: state.notifications.map((n) => ({
+          ...n,
+          isRead: true,
+        })),
+        unreadCount: 0,
+      };
+    }
+
+    case "LOAD_NOTIFICATIONS": {
+      return {
+        ...state,
+        notifications: action.payload,
+        unreadCount: action.payload.filter(
+          (n) => !n.isRead
+        ).length,
+      };
+    }
 
     default:
       return state;
